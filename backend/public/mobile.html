@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>Secure Police Messaging</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #F3F4F6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            color: white;
+            padding: 20px 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            margin-top: 8px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .status-badge.online {
+            background: #10B981;
+        }
+
+        .status-badge.offline {
+            background: #EF4444;
+        }
+
+        /* Screen Container */
+        .screen {
+            display: none;
+            min-height: calc(100vh - 80px);
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* Login Screen */
+        .login-container {
+            padding: 24px 16px;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo .badge-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .login-logo h2 {
+            font-size: 24px;
+            color: #1F2937;
+            margin-bottom: 8px;
+        }
+
+        .login-logo p {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #D1FAE5;
+            color: #065F46;
+            border-left: 4px solid #10B981;
+        }
+
+        .alert-error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #EF4444;
+        }
+
+        /* Chat List Screen */
+        .chat-list-header {
+            background: white;
+            padding: 16px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-avatar {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .user-details {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2937;
+        }
+
+        .user-rank {
+            font-size: 13px;
+            color: #6B7280;
+        }
+
+        .logout-btn {
+            padding: 8px 16px;
+            background: #FEE2E2;
+            color: #DC2626;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .search-bar {
+            padding: 12px 16px;
+            background: white;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #F3F4F6;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .contact-list {
+            background: white;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border-bottom: 1px solid #F3F4F6;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .contact-item:active {
+            background: #F9FAFB;
+        }
+
+        .contact-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .contact-info {
+            flex: 1;
+            margin-left: 12px;
+            min-width: 0;
+        }
+
+        .contact-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 4px;
+        }
+
+        .contact-rank {
+            font-size: 12px;
+            color: #6B7280;
+            display: inline-block;
+            background: #F3F4F6;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 4px;
+        }
+
+        .contact-details {
+            font-size: 12px;
+            color: #9CA3AF;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .contact-badge {
+            background: #3B82F6;
+            color: white;
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #9CA3AF;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            font-weight: 600;
+            color: #6B7280;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 24px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #E5E7EB;
+            border-top-color: #3B82F6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #6B7280;
+        }
+
+        /* Bottom spacing for mobile */
+        .bottom-spacing {
+            height: 80px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🛡️ Secure Police Messaging</h1>
+        <p>End-to-End Encrypted Communication</p>
+        <span class="status-badge" id="serverStatus">Checking...</span>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="screen active" id="loginScreen">
+        <div class="login-container">
+            <div class="login-logo">
+                <div class="badge-icon">🛡️</div>
+                <h2>Officer Login</h2>
+                <p>Enter your credentials to continue</p>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">User ID</label>
+                    <input 
+                        type="text" 
+                        class="form-input" 
+                        id="userId" 
+                        placeholder="officer001"
+                        value="officer001"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        class="form-input" 
+                        id="password" 
+                        placeholder="Enter password"
+                        value="Police@123"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    Login Securely
+                </button>
+            </form>
+
+            <div id="loginAlert"></div>
+        </div>
+    </div>
+
+    <!-- Chat List Screen -->
+    <div class="screen" id="chatListScreen">
+        <div class="chat-list-header">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">RK</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-rank" id="userRank">Officer</div>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input 
+                type="text" 
+                class="search-input" 
+                placeholder="🔍 Search contacts..."
+                id="searchInput"
+                oninput="filterContacts()"
+            >
+        </div>
+
+        <div id="contactListContainer">
+            <div class="loading">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading contacts...</div>
+            </div>
+        </div>
+
+        <div class="bottom-spacing"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000';
+        let authToken = null;
+        let currentUser = null;
+        let allContacts = [];
+
+        // Check server status on load
+        window.addEventListener('load', checkServerStatus);
+
+        async function checkServerStatus() {
+            const statusEl = document.getElementById('serverStatus');
+            try {
+                const response = await fetch(`${API_URL}/health`, { 
+                    signal: AbortSignal.timeout(3000) 
+                });
+                if (response.ok) {
+                    statusEl.textContent = '✅ Server Online';
+                    statusEl.className = 'status-badge online';
+                } else {
+                    statusEl.textContent = '⚠️ Server Issues';
+                    statusEl.className = 'status-badge';
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ Server Offline';
+                statusEl.className = 'status-badge offline';
+            }
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const password = document.getElementById('password').value;
+            const alertDiv = document.getElementById('loginAlert');
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, password }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.accessToken;
+                    currentUser = data.user;
+                    
+                    alertDiv.className = 'alert alert-success';
+                    alertDiv.textContent = `✅ Login successful! Welcome ${data.user.name}`;
+                    
+                    setTimeout(() => {
+                        showScreen('chatListScreen');
+                        loadContacts();
+                        updateUserInfo();
+                    }, 1000);
+                } else {
+                    alertDiv.className = 'alert alert-error';
+                    alertDiv.textContent = `❌ ${data.error || 'Login failed'}`;
+                }
+            } catch (error) {
+                alertDiv.className = 'alert alert-error';
+                alertDiv.textContent = `❌ Network error: ${error.message}`;
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function updateUserInfo() {
+            if (!currentUser) return;
+            
+            const initials = currentUser.name.split(' ').map(n => n[0]).join('');
+            document.getElementById('userAvatar').textContent = initials;
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userRank').textContent = `${currentUser.rank} • ${currentUser.department}`;
+        }
+
+        async function loadContacts() {
+            const container = document.getElementById('contactListContainer');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/users`, {
+                    headers: { 
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.users) {
+                    allContacts = data.users;
+                    renderContacts(allContacts);
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">⚠️</div>
+                            <div class="empty-state-text">Failed to load contacts</div>
+                            <div class="empty-state-subtext">${data.error || 'Unknown error'}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <div class="empty-state-text">Network Error</div>
+                        <div class="empty-state-subtext">${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderContacts(contacts) {
+            const container = document.getElementById('contactListContainer');
+            
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <div class="empty-state-text">No contacts found</div>
+                        <div class="empty-state-subtext">Try a different search</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const html = `
+                <div class="contact-list">
+                    ${contacts.map(contact => {
+                        const initials = contact.name.split(' ').map(n => n[0]).join('');
+                        return `
+                            <div class="contact-item" onclick="openChat('${contact.id}', '${contact.name}')">
+                                <div class="contact-avatar">${initials}</div>
+                                <div class="contact-info">
+                                    <div class="contact-name">${contact.name}</div>
+                                    <div class="contact-rank">${contact.rank}</div>
+                                    <div class="contact-details">
+                                        ${contact.department} • ${contact.userId}
+                                    </div>
+                                </div>
+                                <div class="contact-badge">💬</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        function filterContacts() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allContacts.filter(contact => 
+                contact.name.toLowerCase().includes(searchQuery) ||
+                contact.userId.toLowerCase().includes(searchQuery) ||
+                contact.rank.toLowerCase().includes(searchQuery)
+            );
+            renderContacts(filtered);
+        }
+
+        function openChat(contactId, contactName) {
+            alert(`Opening chat with ${contactName}\n\n(In the mobile app, this would open the encrypted chat screen)`);
+        }
+
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                authToken = null;
+                currentUser = null;
+                allContacts = [];
+                showScreen('loginScreen');
+                document.getElementById('loginAlert').innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>
